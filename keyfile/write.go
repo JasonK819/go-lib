@@ -7,6 +7,7 @@ package keyfile
 import (
 	"bytes"
 	"io"
+	"log"
 	"os"
 )
 
@@ -85,12 +86,19 @@ func (f *KeyFile) SaveToWriter(w io.Writer) error {
 	return err
 }
 
-func (kf *KeyFile) SaveToFile(file string) error {
+func (kf *KeyFile) SaveToFile(file string) (err error) {
 	fh, err := os.Create(file)
 	if err != nil {
-		return err
+		return
 	}
 
-	defer fh.Close()
+	defer func() {
+		CloseErr := fh.Close()
+		if err == nil {
+			err = CloseErr
+		} else {
+			log.Printf("SaveToFile close %v %v", fh.Name(), CloseErr)
+		}
+	}()
 	return kf.SaveToWriter(fh)
 }

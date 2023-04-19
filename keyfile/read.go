@@ -78,12 +78,19 @@ func (f *KeyFile) LoadFromData(data []byte) error {
 	return f.LoadFromReader(bytes.NewBuffer(data))
 }
 
-func (f *KeyFile) LoadFromFile(filename string) error {
+func (f *KeyFile) LoadFromFile(filename string) (err error) {
 	fh, err := os.Open(filename)
 	if err != nil {
-		return err
+		return
 	}
-	defer fh.Close()
+	defer func() {
+		CloseErr := fh.Close()
+		if err == nil {
+			err = CloseErr
+		} else {
+			log.Printf("LoadFromFile close %v %v", fh.Name(), CloseErr)
+		}
+	}()
 	return f.LoadFromReader(bufio.NewReader(fh))
 }
 
